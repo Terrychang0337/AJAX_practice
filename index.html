@@ -4,134 +4,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AJAX</title>
+    <title>AJAX練習－以政府公開api資料：新北市YouBike為例</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/all.css">
 </head>
 
 <style>
+    * {
+        font-family: "微軟正黑體";
+        letter-spacing: 2px;
+        box-sizing: border-box;
+
+    }
+
+    body {
+        background-color: rgb(254, 255, 223);
+    }
+
+    button:hover {
+        cursor: pointer;
+    }
+
+    i {
+        color: rgb(255, 208, 0);
+        font-size: 55px;
+    }
+
+    h1 {
+        letter-spacing: 3px;
+    }
+
+    h4 {
+        color: rgb(109, 109, 109);
+    }
+
+    h4 a {
+        text-decoration: none;
+        color: darkblue;
+        transition: 0.3s all;
+    }
+
+    h4 a:hover {
+        text-decoration: none;
+        color: rgb(236, 54, 154);
+    }
+
     img {
         width: 100%;
     }
 
-    #shoplist {
+    .wrapper {
         display: flex;
-        list-style: none;
-        padding: 0;
+        width: 1200px;
+        height: 100%;
+        justify-content: space-evenly;
+        flex-wrap: wrap;
 
     }
 
-    #shoplist li {
-        flex: 1;
-        cursor: pointer;
-        border: 1px solid black;
+    .wrapper>div {
+
+        width: 25%;
+        border: 3px solid rgb(224, 146, 0);
+        border-radius: 3px;
+        background-color: rgb(248, 220, 168);
+        margin: 20px;
         padding: 10px;
-        margin: 15px;
-        font-size: 12px;
-        border-radius: 5px;
+        box-shadow: 10px 5px 10px rgba(0, 0, 0, 0.3);
+        transition: 0.3s all;
+        cursor: pointer;
 
     }
 
-    #shoplist li:hover {
-        background-color: #f5f5f5;
-        box-shadow: 0px 0px 20px rgb(0, 0, 0, 0.2);
-
+    .wrapper>div:hover {
+        background-color: rgb(252, 212, 139);
+        transform: translate(-3px, -6px);
+        box-shadow: 10px 5px 30px rgba(0, 0, 0, 0.3);
     }
 
-    #shoplist img {
-        mix-blend-mode: multiply;
+    .wrapper>div>span {
+        font-weight: bolder;
     }
 </style>
 
 <body>
 
 
-    <h2>請選擇你的鞋子</h2>
+    <h1>新北市公共自行車租賃系統(YouBike)<i class="fas fa-bicycle"></i></h1>
+    <h4>資料來源:政府資料開放平台<br>
+        資料格式:JSON<br>
+        來源地址:<a href="https://data.gov.tw/dataset/28318" target="_black">https://data.gov.tw/dataset/28318</a></h4>
     <hr>
-    <ul id="shoplist">
 
-    </ul>
-    <h3>你選擇了</h3>
-    <p class="selectinfo"></p>
-    <button onclick="downloadList()">載入清單</button>
+
+    <button onclick="downloadList()">抓取資料!GO!</button>
+    <div class="wrapper" id="showlist">
+
+    </div>
 
 
 
     <script src="https://code.jquery.com/jquery-3.4.1.js"
         integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
+
     <script>
 
-        var cataurl = "https://2017.awiclass.monoame.com/api/demo/shop";
-        var imgurl = "https://2017.awiclass.monoame.com";
-        var items = [];
+        var cataurl = "https://cors-anywhere.herokuapp.com/data.ntpc.gov.tw/api/v1/rest/datastore/382000000A-000352-001";
+        var items = {};
+
         function downloadList() {
 
+            $('#showlist').text("下載中...");
             $.ajax({
+                type: "GET",
                 url: cataurl,
+                dataType: 'json',
                 success: function (res) {
-                    console.log(res);
-                    // 把成功抓取回來的陣列存入變數items
                     items = res;
-                    updateList();
+                    // console.log(items.result.records);
+                    showdownloadlist();
                 },
                 error: function () {
                     console.log("載入失敗");
                 }
 
-            })
 
-        }
-
-        function updateList() {
-
-            $('ul#shoplist').html("");
-            items.forEach(function (item) {
-                var item = `
-                    <li data-id="${item.id}">
-                        <img src="${imgurl}${item.img}">
-                        <h3>${item.name}</h3>
-                    </li>
-                `
-                var itemEl = $(item);
-
-                itemEl.click(function () {
-                    var selectedId = $(this).attr("data-id");
-
-                    console.log(selectedId)
-                    updateSelect(selectedId);
-                })
-
-                $('ul#shoplist').append(itemEl);
-                console.log(item.name)
 
             })
 
         }
 
-        function updateSelect(id) {
-            $('.selectinfo').html("");
-            $.ajax({
-                url: cataurl + "/" + id,
-                success: function (res) {
-                    var content = `
-                    <ul>
-                        <li>名字:${res.name} </li>
-                        <li>價格:${res.price} </li>
-                        <li>顏色:${res.color} </li>
-                        <li>尚有存貨:${res.count} </li>
-                        <li>描述:${res.description} </li>
-                    </ul> 
+        function showdownloadlist() {
+            $('#showlist').html("");
+            var stationlist = items.result.records;
+            console.log(stationlist);
+            var content = "";
+
+            for (i = 0; i < stationlist.length; i++) {
+                content +=
                     `
-                    console.log(res)
+                        <div> 
+                            <span>場站代號:</span>${stationlist[i].sno}<br>
+                            <span>中文場站名稱:</span>${stationlist[i].sna} <br>
+                            <span>場站總停車格:</span>${stationlist[i].tot} <br>
+                            <span>可借車位數:</span>${stationlist[i].sbi} <br>
+                            <span>資料更新時間:</span>${stationlist[i].mday} <br>
+                            <span>場站地址:</span>${stationlist[i].ar} 
+                        </div>
+                    `;
 
-                    // JSON.stringify()  物件轉換成文字
-                    // $('.selectinfo').text(JSON.stringify(res));
-                    $('.selectinfo').append(content);
+            }
 
-                }
-
-
-
-
-            })
+            $('#showlist').append(content);
+            console.log(content);
         }
 
 
